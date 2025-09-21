@@ -3,7 +3,9 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
+import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.EmptyStackException;
@@ -41,18 +43,45 @@ public class ImageLoader {
   }
 
   public ArrayList<Path> makeImageList(File directory)  {
-    File[] contents = directory.listFiles();
+    //File[] contents = directory.listFiles();
+    
 
     ArrayList<Path> images = new ArrayList<Path>();
 
+    /*
     for ( File f : contents) {
       Path path = f.toPath();
       if(path != null && isImage(path)) {
         images.add(path);
       }
     }
+    */
+    images = getFiles(directory.toPath());
     //System.out.println(images.size());
     return images;
+  }
+
+  public ArrayList<Path> getFiles(Path dir) {
+    ArrayList<Path> files = new ArrayList<Path>();
+
+    try (DirectoryStream<Path> stream = Files.newDirectoryStream(dir)) {
+           for (Path entry: stream) {
+              if(Files.isDirectory(entry, LinkOption.NOFOLLOW_LINKS)) {
+                files.addAll(getFiles(entry));
+              }
+              else {
+                if(isImage(entry)) {
+                  files.add(entry);
+                }
+              }
+           }
+       } catch (Exception ex) {
+           // I/O error encounted during the iteration, the cause is an IOException
+           System.out.println(ex.getMessage());
+           ex.printStackTrace();
+       }
+
+    return files;
   }
 
   private boolean isImage(Path path)  {

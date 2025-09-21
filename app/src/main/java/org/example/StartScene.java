@@ -1,6 +1,6 @@
 package org.example;
 
-import java.util.LinkedHashMap;
+import java.util.regex.Pattern;
 
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
@@ -24,14 +24,11 @@ public class StartScene implements EventHandler<ActionEvent> {
 
   ChoiceBox<String> options;
 
-  LinkedHashMap<String,Integer> dropdownValues;
-
   HBox fileSelection;
   Button fileButton;
 
   public StartScene(Button button) {
     startButton = button;
-    makeDictionary();
   }
 
   public Scene scene() {
@@ -43,9 +40,10 @@ public class StartScene implements EventHandler<ActionEvent> {
     VBox.setMargin(title, new Insets(80));
 
     options = new ChoiceBox<String>();
-    options.getItems().addAll("30 Seconds", "1 Minute", "2 Minutes", "5 Minutes", "10 Minutes", "20 Minutes", "30 Minutes", "60 Minutes");
+    options.getItems().addAll("30 Seconds", "1 Minute", "2 Minutes", "5 Minutes", "10 Minutes", "15 Minutes", "20 Minutes", "30 Minutes", "60 Minutes");
     options.setPrefWidth(150);
     options.setMinHeight(30);
+    options.setValue("2 Minutes");
 
     fileSelection();
     
@@ -61,22 +59,24 @@ public class StartScene implements EventHandler<ActionEvent> {
     return new Scene(root);
   }
 
-  private void makeDictionary() {
-    dropdownValues = new LinkedHashMap<>();
-
-    dropdownValues.put("30 Seconds", 30);    
-    dropdownValues.put("1 Minute", 60);  
-    dropdownValues.put("2 Minutes", 120);  
-    dropdownValues.put("5 Minutes", 300);  
-    dropdownValues.put("10 Minutes", 600);  
-    dropdownValues.put("20 Minutes", 1200);  
-    dropdownValues.put("30 Minutes", 1800);  
-    dropdownValues.put("60 Minutes", 3600);  
+  private int duration(String s) {
+    String[] array = s.split(" ");
+    if(array[1].equals("Seconds")) {
+      return Integer.parseInt(array[0]);
+    }
+    Pattern p = Pattern.compile("Minutes*");
+    if(p.matcher(array[1]).matches()) {
+      return Integer.parseInt(array[0]) * 60;
+    }
+    else {
+      return 60;
+    }
   }
 
   public int getDurationFromSelected() {
     String selected = options.getValue();
-    return dropdownValues.get(selected);
+    //return dropdownValues.get(selected);
+    return duration(selected);
   }
 
   public void fileSelection() {
